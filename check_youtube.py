@@ -50,20 +50,31 @@ if code != 0:
     finish(False)
 log("STEP 1 PASS: metadata mil gaya -> " + out.strip().splitlines()[-1])
 
-# STEP 2: sirf chhota hissa download (video only, max 720p)
-section = f"*{start}-{start + dur}"
+# STEP 2: poora video (video only, 480p tak) yt-dlp ke apne downloader se
 code, out = run(
     YT
-    + ["-f", "bv*[height<=720]/b[height<=720]", "--download-sections", section,
-       "--force-keyframes-at-cuts", "-o", "tmp/video.%(ext)s", url]
+    + ["-f", "bv*[height<=480][vcodec^=avc1]/bv*[height<=480]/bv*",
+       "--retries", "5", "--socket-timeout", "30",
+       "-o", "tmp/full.%(ext)s", url]
 )
-files = glob.glob("tmp/video.*")
-if code != 0 or not files:
+full = glob.glob("tmp/full.*")
+if code != 0 or not full:
     log("STEP 2 FAIL: video download block ya fail hua")
     log(out[-1500:])
     finish(False)
-size_mb = os.path.getsize(files[0]) / 1e6
-log(f"STEP 2 PASS: {dur}s ka video download hua ({size_mb:.1f} MB)")
+log(f"STEP 2a PASS: poora video download hua ({os.path.getsize(full[0]) / 1e6:.1f} MB)")
+
+# STEP 2b: ab local file se sirf test ka hissa kaato
+code, out = run(
+    ["ffmpeg", "-y", "-ss", str(start), "-t", str(dur), "-i", full[0],
+     "-c", "copy", "tmp/video.mkv"]
+)
+files = glob.glob("tmp/video.mkv")
+if code != 0 or not files:
+    log("STEP 2b FAIL: video kaatna fail hua")
+    log(out[-1500:])
+    finish(False)
+log(f"STEP 2b PASS: {dur}s ka hissa kaat liya")
 
 # STEP 3: har 10 second pe ek frame (slide jaisa)
 code, out = run(
