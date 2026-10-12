@@ -30,7 +30,8 @@ def run(cmd):
     return p.returncode, (p.stdout + p.stderr)
 
 
-YT = ["yt-dlp", "--no-playlist", "--js-runtimes", "node"]
+YT = ["yt-dlp", "--no-playlist", "--js-runtimes", "node",
+      "--remote-components", "ejs:github"]
 
 cookies = os.environ.get("YT_COOKIES", "").strip()
 if cookies:
