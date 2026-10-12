@@ -32,6 +32,15 @@ def run(cmd):
 
 YT = ["yt-dlp", "--no-playlist", "--js-runtimes", "node"]
 
+cookies = os.environ.get("YT_COOKIES", "").strip()
+if cookies:
+    with open("tmp/cookies.txt", "w", encoding="utf-8") as f:
+        f.write(cookies + "\n")
+    YT += ["--cookies", "tmp/cookies.txt"]
+    log("INFO: cookies use ho rahi hain")
+else:
+    log("INFO: bina cookies ke try ho raha hai")
+
 # STEP 1: metadata
 code, out = run(YT + ["--print", "%(title)s | %(duration)s sec", url])
 if code != 0:
