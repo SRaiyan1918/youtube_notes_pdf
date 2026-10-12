@@ -1,0 +1,42 @@
+name: YouTube Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "YouTube video URL"
+        required: true
+      start:
+        description: "Start second"
+        default: "0"
+      duration:
+        description: "Kitne seconds test karne hain"
+        default: "60"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install tools
+        run: pip install -U yt-dlp pillow
+
+      - name: Run check
+        env:
+          URL: ${{ inputs.url }}
+          START: ${{ inputs.start }}
+          DURATION: ${{ inputs.duration }}
+        run: python check_youtube.py "$URL" "$START" "$DURATION"
+
+      - name: Upload result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: youtube-check-result
+          path: out/
