@@ -32,6 +32,7 @@ jobs:
           URL: ${{ inputs.url }}
           START: ${{ inputs.start }}
           DURATION: ${{ inputs.duration }}
+          YT_COOKIES: ${{ secrets.YT_COOKIES }}
         run: python check_youtube.py "$URL" "$START" "$DURATION"
 
       - name: Upload result
