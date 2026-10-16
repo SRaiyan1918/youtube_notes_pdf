@@ -1,4 +1,4 @@
-name: YouTube Check
+name: Lecture PDF
 
 on:
   workflow_dispatch:
@@ -6,17 +6,23 @@ on:
       url:
         description: "YouTube video URL"
         required: true
-      start:
-        description: "Start second"
+      start_min:
+        description: "Kitne minute se shuru karna hai"
         default: "0"
-      duration:
-        description: "Kitne seconds test karne hain"
-        default: "60"
+      dur_min:
+        description: "Kitne minute process karne hain"
+        default: "20"
+      height:
+        description: "Max video height (720 recommended)"
+        default: "720"
+
+permissions:
+  contents: write
 
 jobs:
-  check:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
 
@@ -27,20 +33,25 @@ jobs:
       - name: Install ffmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
-      - name: Install tools
-        run: pip install -U "yt-dlp[default]" pillow
+      - name: Install python packages
+        run: pip install -U "yt-dlp[default]" opencv-python-headless numpy img2pdf
 
-      - name: Run check
+      - name: Build PDF
         env:
           URL: ${{ inputs.url }}
-          START: ${{ inputs.start }}
-          DURATION: ${{ inputs.duration }}
+          START_MIN: ${{ inputs.start_min }}
+          DUR_MIN: ${{ inputs.dur_min }}
+          HEIGHT: ${{ inputs.height }}
           YT_COOKIES: ${{ secrets.YT_COOKIES }}
-        run: python check_youtube.py "$URL" "$START" "$DURATION"
+        run: python lecture_pdf.py "$URL" "$START_MIN" "$DUR_MIN" "$HEIGHT"
 
-      - name: Upload result
+      - name: Publish release
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: softprops/action-gh-release@v2
         with:
-          name: youtube-check-result
-          path: out/
+          tag_name: lecture-${{ github.run_number }}
+          name: Lecture PDF #${{ github.run_number }}
+          files: |
+            out/lecture_slides.pdf
+            out/report.txt
+            out/scores.csv
